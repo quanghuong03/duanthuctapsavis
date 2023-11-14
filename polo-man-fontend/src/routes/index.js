@@ -10,12 +10,16 @@ import {
   OrderList,
 } from "../components/admin";
 import { UserLoginPage, UserProductDetail } from "../components/user";
+import { SearchProduct } from "../components/user/SearchProduct";
 import { HomePage } from "../components/user/HomePage";
 import { NotFoundPage } from "../components/common";
 import { UserCart } from "../components/user/Cart";
 import { Checkout } from "../components/user/Checkout";
 import { UserOrderList } from "../components/user/UserOrderList";
 import { UserLayout } from "../layout/user/UserLayout";
+import { OrderDetail } from "../components/admin";
+import { UpdateOrder } from "../components/admin";
+import { ProductList, AddProduct } from "../components/admin";
 const NoGuard = ({ children }) => {
   return <>{children}</>;
 };
@@ -54,9 +58,20 @@ const adminRoutes = [
     component: UpdateChatLieu,
   }),
   getAdminRoute({ path: "/admin/orders", component: OrderList }),
+  getAdminRoute({ path: "/admin/orders/:mahoadon", component: OrderDetail }),
+  getAdminRoute({
+    path: "/admin/orders/update/:mahoadon",
+    component: UpdateOrder,
+  }),
+  getAdminRoute({ path: "/admin/sanpham", component: ProductList }),
+  getAdminRoute({ path: "/admin/sanpham/add", component: AddProduct }),
   getUserRoute({ path: "/login", component: UserLoginPage }),
   getUserRoute({ path: "/", component: HomePage }),
   getUserRoute({ path: "/sanpham/:masanpham", component: UserProductDetail }),
+  getAdminRoute({
+    path: "/admin/sanpham/update/:masanpham",
+    component: AddProduct,
+  }),
   getUserRoute({ path: "/carts", component: UserCart, guard: UserAuthGuard }),
   getUserRoute({
     path: "/account",
@@ -73,6 +88,11 @@ const adminRoutes = [
     component: Checkout,
     guard: UserAuthGuard,
   }),
+  getAdminRoute({
+    path: "/admin/products/update/:productId",
+    component: AddProduct,
+  }),
+  getUserRoute({ path: "/search", component: SearchProduct }),
   {
     path: "*",
     component: NotFoundPage,

@@ -50,24 +50,20 @@ const tabs = [
 const getUpdateAbleStatus = (statusCode) => {
   switch (statusCode) {
     case 1:
-      return Trang_Thai_Don_Hang.filter((trangthai) =>
-        [6, 4].includes(trangthai.value)
+      return Trang_Thai_Don_Hang.filter((status) =>
+        [6, 4].includes(status.value)
       );
     case 2:
-      return Trang_Thai_Don_Hang.filter((trangthai) =>
-        [4].includes(trangthai.value)
-      );
+      return Trang_Thai_Don_Hang.filter((status) => [4].includes(status.value));
     case 5:
-      return Trang_Thai_Don_Hang.filter((trangthai) =>
-        [4].includes(trangthai.value)
-      );
+      return Trang_Thai_Don_Hang.filter((status) => [4].includes(status.value));
     case 6:
-      return Trang_Thai_Don_Hang.filter((trangthai) =>
-        [4, 7].includes(trangthai.value)
+      return Trang_Thai_Don_Hang.filter((status) =>
+        [4, 7].includes(status.value)
       );
     case 7:
-      return Trang_Thai_Don_Hang.filter((trangthai) =>
-        [4, 2].includes(trangthai.value)
+      return Trang_Thai_Don_Hang.filter((status) =>
+        [4, 2].includes(status.value)
       );
     default:
       return [];
@@ -78,6 +74,8 @@ const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [statusCode, setStatusCode] = useState(1);
+  const [activeTab, setActiveTab] = useState(1);
+  const [currentTab, setCurrentTab] = useState(1);
   const [filterForm] = Form.useForm();
   const LIMIT = 10;
   const [loading, setLoading] = useState(true);
@@ -87,17 +85,21 @@ const OrderList = () => {
   };
 
   useEffect(() => {
-    (async () => {
+    const fetchOrders = async () => {
       try {
+        const selectedTab = tabs.find((tab) => tab.key === currentTab);
         const orders = await getOrders({
-          statuses: statusCode,
+          trangthai: selectedTab.key,
         });
         setOrders(orders);
-      } catch (e) {
-        toastService.error(e.apiMessage);
+        setPage(1);
+      } catch (error) {
+        toastService.error(error.apiMessage);
       }
-    })();
-  }, []);
+    };
+
+    fetchOrders();
+  }, [currentTab]);
 
   async function getOrders(form) {
     try {
@@ -112,7 +114,11 @@ const OrderList = () => {
   }
 
   const filterOrder = async (form) => {
-    const orders = await getOrders(form);
+    const selectedTab = tabs.find((tab) => tab.key === activeTab);
+    const orders = await getOrders({
+      ...form,
+      trangthai: selectedTab.key,
+    });
     setOrders(orders);
     setPage(1);
   };
@@ -150,14 +156,9 @@ const OrderList = () => {
       });
   };
 
-  const orderStatusTabChangeHandle = (statusCode) => {
-    setStatusCode(statusCode);
-    const formValue = filterForm.getFieldsValue();
-
-    filterOrder({
-      ...formValue,
-      trangthai: statusCode,
-    });
+  const orderStatusTabChangeHandle = (key) => {
+    console.log("Selected Tab Key:", key);
+    setCurrentTab(key);
   };
 
   return (
@@ -166,7 +167,7 @@ const OrderList = () => {
         defaultActiveKey="1"
         items={tabs}
         onChange={orderStatusTabChangeHandle}
-        activeKey={statusCode}
+        activeKey={currentTab}
       />
       <Form
         layout="inline"

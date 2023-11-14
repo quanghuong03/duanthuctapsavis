@@ -51,7 +51,11 @@ const menus = [
     childrens: [
       {
         path: "chatlieu",
-        name: "ChatLieu List",
+        name: "Danh sách chất liệu",
+      },
+      {
+        path: "sanpham",
+        name: "Danh sách sản phẩm",
       },
     ],
   },

@@ -29,19 +29,19 @@ const Header = () => {
   };
 
   const searchProductHandle = (form) => {
-    if (!form.name) {
+    if (!form.tensanpham) {
       return;
     }
     dispatch(
       patchProductForm({
-        name: form.name,
+        tensanpham: form.tensanpham,
       })
     );
-    navigate("/products/search/", {
+    navigate("/search", {
       state: {
-        name: form.name,
+        tensanpham: form.tensanpham,
       },
-      search: "?name=" + form.name,
+      search: "?tensanpham=" + form.tensanpham,
     });
   };
 
@@ -67,7 +67,7 @@ const Header = () => {
                   {userAuthService.isLogin() && (
                     <div className="userInfo">
                       <i className="fa fa-user" aria-hidden="true"></i>
-                      {/* {useInfo?.name} */}
+                      {useInfo?.tenkhachhang}
                       <ul className="onhover-show-div">
                         <li>
                           <Link to={"/account"}>My Account</Link>
@@ -115,7 +115,7 @@ const Header = () => {
                   className="form_search border-radius-0"
                   onFinish={searchProductHandle}
                 >
-                  <Form.Item name={"name"}>
+                  <Form.Item name={"tensanpham"}>
                     <Input
                       id="query search-autocomplete"
                       type="search"

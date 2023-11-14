@@ -3,4 +3,18 @@ import { AddChatLieu } from "./ChatLieu/AddChatLieu/AddChatLieu";
 import { UpdateChatLieu } from "./ChatLieu/UpdateChatLieu/UpdateChatLieu";
 import { AdminDashBoard } from "./Dashboard";
 import { OrderList } from "./HoaDon/OrderList/OrderList";
-export { AdminDashBoard, ChatLieuList, AddChatLieu, UpdateChatLieu, OrderList };
+import { OrderDetail } from "./HoaDon/HoaDonChiTiet";
+import { UpdateOrder } from "./HoaDon/UpdateHoaDon/UpdateOrder";
+import { ProductList } from "./SanPham/ProductList";
+import { AddProduct } from "./SanPham/AddProduct/AddProduct";
+export {
+  AdminDashBoard,
+  ChatLieuList,
+  AddChatLieu,
+  UpdateChatLieu,
+  OrderList,
+  OrderDetail,
+  UpdateOrder,
+  ProductList,
+  AddProduct,
+};

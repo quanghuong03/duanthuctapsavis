@@ -1,0 +1,33 @@
+
+.order_item {
+    background: #f8f8f8;
+    padding: 3rem;
+    box-sizing: border-box;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.order_detail .order_product_image {
+    width: 100%;
+}
+
+.order_detail .order_product_image img {
+    width: 100%;
+    object-fit: cover;
+}
+
+.order_detail .order_total_price {
+    height: 50px;
+    line-height: 50px;
+}
+
+.order_detail .order_product_price p,
+.order_detail .order_total_price span {
+    color: #ee4d2d;
+}
+
+.order_detail .order_total_price span {
+    font-size: 24px;
+    margin-left: 1rem;
+    line-height: 50px;
+}

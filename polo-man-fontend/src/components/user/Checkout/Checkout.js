@@ -91,6 +91,7 @@ const Checkout = () => {
         request
       );
       toastService.success("Checkout Successfully");
+      navigate("/orders");
     } catch (error) {
       toastService.error(error.apiMessage);
     }

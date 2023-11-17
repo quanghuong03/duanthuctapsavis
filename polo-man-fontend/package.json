@@ -22,10 +22,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
-<<<<<<< HEAD
-=======
     "react-image": "^4.1.0",
->>>>>>> 1cc706cd11d4e2e7a3c8790dbe4b1e4986e42a17
+
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.16.0",
     "react-scripts": "^5.0.1",

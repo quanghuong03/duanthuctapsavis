@@ -20,6 +20,18 @@ import { UserLayout } from "../layout/user/UserLayout";
 import { OrderDetail } from "../components/admin";
 import { UpdateOrder } from "../components/admin";
 import { ProductList, AddProduct } from "../components/admin";
+import { MauSacList } from "../components/admin/MauSac/MauSacList";
+import { AddMauSac } from "../components/admin/MauSac/AddMauSac/AddMauSac";
+import { UpdateMauSac } from "../components/admin/MauSac/UpdateMauSac/UpdateMauSac";
+import { SizeList } from "../components/admin/Size/SIzeList";
+import { AddSize } from "../components/admin/Size/AddSize/AddSize";
+import { UpdateSize } from "../components/admin/Size/UpdateSize/UpdateSize";
+import { DongSPList } from "../components/admin/DongSP/DongSPList";
+import { AddDongSp } from "../components/admin/DongSP/AddDongsp/AddDongSP";
+import { UpdateDongSp } from "../components/admin/DongSP/UpdateDongSp/UpdateDongSp";
+import { ThuongHieuList } from "../components/admin/ThuongHieu/ThuongHieuList";
+import { AddThuongHiec } from "../components/admin/ThuongHieu/ThuongHieuAdd/ThuongHieuAdd";
+import { UpdateThuongHieu } from "../components/admin/ThuongHieu/ThuongHieuUpdate/ThuongHieuUpdate";
 const NoGuard = ({ children }) => {
   return <>{children}</>;
 };
@@ -56,6 +68,30 @@ const adminRoutes = [
   getAdminRoute({
     path: "/admin/chatlieu/update/:machatlieu",
     component: UpdateChatLieu,
+  }),
+  getAdminRoute({ path: "admin/mausac", component: MauSacList }),
+  getAdminRoute({ path: "/admin/mausac/add", component: AddMauSac}),
+  getAdminRoute({
+    path: "/admin/mausac/update/:mamausac",
+    component: UpdateMauSac,
+  }),
+  getAdminRoute({ path: "admin/size", component: SizeList}),
+  getAdminRoute({ path: "/admin/size/add", component: AddSize}),
+  getAdminRoute({
+    path: "/admin/size/update/:masize",
+    component: UpdateSize,
+  }),
+  getAdminRoute({ path: "admin/dongsp", component: DongSPList}),
+  getAdminRoute({ path: "/admin/dongsp/add", component: AddDongSp}),
+  getAdminRoute({
+    path: "/admin/dongsp/update/:madongsp",
+    component: UpdateDongSp,
+  }),
+  getAdminRoute({ path: "admin/thuonghieu", component: ThuongHieuList}),
+  getAdminRoute({ path: "/admin/thuonghieu/add", component: AddThuongHiec}),
+  getAdminRoute({
+    path: "/admin/thuonghieu/update/:mathuonghieu",
+    component: UpdateThuongHieu,
   }),
   getAdminRoute({ path: "/admin/orders", component: OrderList }),
   getAdminRoute({ path: "/admin/orders/:mahoadon", component: OrderDetail }),

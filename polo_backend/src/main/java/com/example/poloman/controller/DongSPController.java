@@ -2,6 +2,7 @@ package com.example.poloman.controller;
 
 import com.example.poloman.common.Response;
 import com.example.poloman.model.entity.DongSP;
+import com.example.poloman.model.entity.MauSac;
 import com.example.poloman.service.DongSPService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class DongSPController {
     private DongSPService dongSPService;
 
     @GetMapping("/getAll")
-    public Response<List<DongSP>>  getAll() {
+    public Response<List<DongSP>> getAll() {
         return Response.ofSucceeded(dongSPService.getAll());
     }
 
@@ -37,6 +38,11 @@ public class DongSPController {
     @DeleteMapping("delete/{madongsp}")
     public void delete(@PathVariable Integer madongsp) {
         dongSPService.delete(madongsp);
+    }
+
+    @GetMapping("/{madongsp}")
+    public Response<DongSP> get(@PathVariable Integer madongsp) {
+        return Response.ofSucceeded(dongSPService.getOne(madongsp));
     }
 
 }

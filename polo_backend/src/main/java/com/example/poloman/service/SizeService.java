@@ -1,5 +1,6 @@
 package com.example.poloman.service;
 
+import com.example.poloman.model.entity.MauSac;
 import com.example.poloman.model.entity.Size;
 
 import java.util.List;
@@ -11,5 +12,7 @@ public interface SizeService {
     Size save(Size size);
 
     void delete(Integer masize);
+
+    Size getOne(Integer masize);
 
 }

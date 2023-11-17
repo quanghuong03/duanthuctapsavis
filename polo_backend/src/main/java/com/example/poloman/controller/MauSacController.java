@@ -1,6 +1,7 @@
 package com.example.poloman.controller;
 
 import com.example.poloman.common.Response;
+import com.example.poloman.model.entity.ChatLieu;
 import com.example.poloman.model.entity.MauSac;
 import com.example.poloman.service.MauSacService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/mausac")
+@RequestMapping("/admin/mausac")
 public class MauSacController {
 
     @Autowired
@@ -28,14 +29,19 @@ public class MauSacController {
     }
 
 
-    @PutMapping("/update/{mamausac}")
-    public ResponseEntity<?> update(@PathVariable Integer mamausac, @RequestBody MauSac mauSac) {
-        mauSacService.save(mauSac);
-        return ResponseEntity.ok(mauSac);
+    @PutMapping("/{mamausac}")
+    public Response<?> update(@PathVariable Integer mamausac) {
+        return Response.ofSucceeded(mauSacService.getOne(mamausac));
     }
 
     @DeleteMapping("delete/{mamausac}")
     public void delete(@PathVariable Integer mamausac) {
         mauSacService.delete(mamausac);
     }
+
+    @GetMapping("/{mamausac}")
+    public Response<MauSac> get(@PathVariable Integer mamausac) {
+        return Response.ofSucceeded(mauSacService.getOne(mamausac));
+    }
+
 }

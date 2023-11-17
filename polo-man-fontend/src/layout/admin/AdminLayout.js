@@ -57,6 +57,22 @@ const menus = [
         path: "sanpham",
         name: "Danh sách sản phẩm",
       },
+      {
+        path: "mausac",
+        name: "Danh sách màu sắc",
+      },
+      {
+        path: "size",
+        name: "Danh sách Size",
+      },
+      {
+        path: "dongsp",
+        name: "Danh sách Dòng sản phẩm",
+      },
+      {
+        path: "thuonghieu",
+        name: "Danh sách Thương hiệu",
+      },
     ],
   },
   {

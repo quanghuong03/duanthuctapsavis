@@ -215,13 +215,10 @@ const ProductList = () => {
                       style={{
                         display: "flex",
                         justifyContent: "center",
-                        width: "100px",
+                        width: "70px",
                       }}
                     >
-                      <img
-                        className="img-fluid product-image"
-                        src={`../../img/sanpham/${p.hinhanh}`}
-                      />
+                      <Image src={p.hinhanh} width={50} height={50}></Image>
                     </td>
                     <td>{p.tendongsp}</td>
                     <td>{p.tenthuonghieu}</td>

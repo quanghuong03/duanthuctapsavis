@@ -1,5 +1,6 @@
 import { Button, Form, Image, Input, Space, Upload } from "antd";
 import { useEffect, useState } from "react";
+import { storage } from "../../../../firebaseConfig";
 import {
   chatLieuSerivce,
   sanphamService,
@@ -47,9 +48,9 @@ const AddProduct = () => {
   const [fileName, setFileName] = useState("");
   const navigate = useNavigate();
   const [hinhanh, setHinhanh] = useState("");
-
+  const [file, setFile] = useState(null);
   const [form] = Form.useForm();
-
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   useEffect(() => {
     (async () => {
       try {
@@ -122,7 +123,7 @@ const AddProduct = () => {
             mota,
             mathuonghieu,
             machatlieu,
-            hinhanh,
+            hinhanh: fileName,
             sanPhamChiTietRequests,
           };
 
@@ -137,6 +138,23 @@ const AddProduct = () => {
   }, []);
 
   const addProductHandle = async (e) => {
+    if (file) {
+      const storageRef = storage.ref();
+      const imageRef = storageRef.child(`images/${file.name}`);
+
+      try {
+        await imageRef.put(file);
+        console.log("Image uploaded successfully!");
+
+        const url = await imageRef.getDownloadURL();
+        console.log("Image URL:", url);
+
+        // Update the form value with the image URL
+        e.hinhanh = url;
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
     if (masanpham) {
       const formValue = form.getFieldsValue();
 
@@ -147,17 +165,16 @@ const AddProduct = () => {
           if (image) {
             return {
               ...productDetail,
-              images: [image],
+              hinhanh: image,
             };
           }
-          return {
-            ...productDetail,
-          };
+          return productDetail;
         }
       );
       formValue.sanPhamChiTietRequests = productDetails;
 
       console.log(productDetails);
+      formValue.hinhanh = e.hinhanh; // Preserve the existing image URL
       await sanphamService.updateProductById(masanpham, formValue);
       navigate("/admin/sanpham");
       toastService.success("Cập nhật sản phẩm thành công");
@@ -214,35 +231,12 @@ const AddProduct = () => {
     form.setFieldValue("machatlieu", newMaterial.machatlieu);
   }
 
-  const fileChangeHandle = async (key, e) => {
-    try {
-      const file = e.target.files[0];
-      const { secure_url } = await fileService.uploadFile({
-        publicId: uuid(),
-        file,
-      });
-      setImages((pre) => {
-        const newImages = {
-          ...pre,
-          [key]: {
-            source: secure_url,
-          },
-        };
-        return newImages;
-      });
-    } catch (error) {
-      toastService.error(error.apiMessage);
-    }
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedImageUrl(URL.createObjectURL(file));
+    setFile(file);
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    const fileName = file ? file.name : "";
-    setSelectedImage(file);
-    setHinhanh(fileName);
-
-    console.log("Selected file name:", fileName); // Output the file name to the console
-  };
   async function deleteProductDetailHandle(form_id, remove, name) {
     const formValue = form.getFieldsValue();
     const productDetail = formValue.sanPhamChiTietRequests[form_id];
@@ -412,8 +406,12 @@ const AddProduct = () => {
             label="Ảnh sản phẩm"
             rules={[{ required: true, message: "Vui lòng chọn ảnh sản phẩm" }]}
           >
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-            {hinhanh && <div>Selected file: {hinhanh}</div>}
+            <div>
+              <input type="file" accept="image/*" onChange={handleFileChange} />
+              {selectedImageUrl && (
+                <img src={selectedImageUrl} alt="Selected" />
+              )}
+            </div>
           </Form.Item>
         </div>
 

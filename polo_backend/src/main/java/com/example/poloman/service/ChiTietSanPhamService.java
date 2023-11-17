@@ -20,4 +20,6 @@ public interface ChiTietSanPhamService {
 
     List<SanPhamChiTietResponse> getForSanPham(Integer masanpham);
 
+
+
 }

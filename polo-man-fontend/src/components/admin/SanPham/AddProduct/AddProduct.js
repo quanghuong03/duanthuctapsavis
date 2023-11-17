@@ -47,7 +47,7 @@ const AddProduct = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [fileName, setFileName] = useState("");
   const navigate = useNavigate();
-  const [hinhanh, setHinhanh] = useState("");
+  const [hinhanh, setHinhAnh] = useState("");
   const [file, setFile] = useState(null);
   const [form] = Form.useForm();
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
@@ -108,6 +108,7 @@ const AddProduct = () => {
             list,
           } = data;
           setFileName(hinhanh);
+          setHinhAnh(hinhanh);
           const sanPhamChiTietRequests = list.map((product_detail) => {
             return {
               ...product_detail,
@@ -407,9 +408,20 @@ const AddProduct = () => {
             rules={[{ required: true, message: "Vui lòng chọn ảnh sản phẩm" }]}
           >
             <div>
+              {hinhanh && typeof hinhanh === "string" && (
+                <img
+                  src={hinhanh}
+                  alt="Existing"
+                  style={{ width: "200px", height: "200px" }}
+                />
+              )}
               <input type="file" accept="image/*" onChange={handleFileChange} />
               {selectedImageUrl && (
-                <img src={selectedImageUrl} alt="Selected" />
+                <img
+                  src={selectedImageUrl}
+                  alt="Selected"
+                  style={{ width: "200px", height: "200px" }}
+                />
               )}
             </div>
           </Form.Item>

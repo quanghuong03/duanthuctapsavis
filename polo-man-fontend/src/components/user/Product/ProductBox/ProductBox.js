@@ -8,10 +8,9 @@ const ProductBox = ({ sanpham }) => {
         <div className="img-wrapper">
           <img
             className="img-fluid product-image"
-            src={`//public/img/sanpham/images (1).jpg${sanpham.hinhanh}`}
+            src={sanpham.hinhanh}
             alt={sanpham.tensanpham}
           />
-         
         </div>
         <div className="product-detail">
           <h6>{sanpham.tensanpham}</h6>

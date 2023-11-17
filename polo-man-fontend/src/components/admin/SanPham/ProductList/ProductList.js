@@ -34,7 +34,7 @@ const ProductList = () => {
   const [brandOptions, setBrandOptions] = useState([]);
 
   const [materialOptions, setMaterialOptions] = useState([]);
-  const LIMIT = 5;
+  const LIMIT = 10;
 
   const [loading, setLoading] = useState(true);
 

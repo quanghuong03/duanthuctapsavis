@@ -5,7 +5,8 @@ export const getThuongHieu = async () => {
     "http://localhost:8080/admin/thuonghieu/getAll"
   );
   return res;
-};const getOne = async (mathuonghieu) => {
+};
+const getOne = async (mathuonghieu) => {
   const res = await adminClient.get(
     `http://localhost:8080/admin/thuonghieu/${mathuonghieu}`
   );
@@ -19,6 +20,4 @@ const saveOrUpdateThuonghieu = async (form) => {
   );
   return res;
 };
-export {  saveOrUpdateThuonghieu, getOne};
-
-
+export { saveOrUpdateThuonghieu, getOne };

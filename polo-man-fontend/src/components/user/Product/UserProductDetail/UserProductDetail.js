@@ -163,21 +163,21 @@ const UserProductDetail = () => {
                 <div className={"main_image"}>
                   <img
                     className={"product-image"}
-                    src={`/img/sanpham/${product.hinhanh}`}
+                    src={product.hinhanh}
                     alt="Image 1"
                   />
                 </div>
                 <div>
                   <img
                     className={"product-image"}
-                    src={`/img/sanpham/${product.hinhanh}`}
+                    src={product.hinhanh}
                     alt="Image 2"
                   />
                 </div>
                 <div>
                   <img
                     className={"product-image"}
-                    src={`/img/sanpham/${product.hinhanh}`}
+                    src={product.hinhanh}
                     alt="Image 3"
                   />
                 </div>

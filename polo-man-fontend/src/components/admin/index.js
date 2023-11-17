@@ -7,6 +7,7 @@ import { OrderDetail } from "./HoaDon/HoaDonChiTiet";
 import { UpdateOrder } from "./HoaDon/UpdateHoaDon/UpdateOrder";
 import { ProductList } from "./SanPham/ProductList";
 import { AddProduct } from "./SanPham/AddProduct/AddProduct";
+import { AddOrder } from "./HoaDon/TaoHoaDon";
 export {
   AdminDashBoard,
   ChatLieuList,
@@ -17,4 +18,5 @@ export {
   UpdateOrder,
   ProductList,
   AddProduct,
+  AddOrder,
 };

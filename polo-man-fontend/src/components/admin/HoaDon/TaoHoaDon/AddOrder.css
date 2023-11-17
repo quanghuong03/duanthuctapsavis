@@ -1,0 +1,10 @@
+.select_product_item:hover{
+    background-color: #007bff;
+    transition: 0.2s;
+    color: white;
+}   
+
+.search_products_input:focus .search_products_list {
+    display: none;
+}
+

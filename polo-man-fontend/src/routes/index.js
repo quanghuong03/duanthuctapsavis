@@ -19,7 +19,7 @@ import { UserOrderList } from "../components/user/UserOrderList";
 import { UserLayout } from "../layout/user/UserLayout";
 import { OrderDetail } from "../components/admin";
 import { UpdateOrder } from "../components/admin";
-import { ProductList, AddProduct } from "../components/admin";
+import { ProductList, AddProduct, AddOrder } from "../components/admin";
 import { MauSacList } from "../components/admin/MauSac/MauSacList";
 import { AddMauSac } from "../components/admin/MauSac/AddMauSac/AddMauSac";
 import { UpdateMauSac } from "../components/admin/MauSac/UpdateMauSac/UpdateMauSac";
@@ -70,25 +70,25 @@ const adminRoutes = [
     component: UpdateChatLieu,
   }),
   getAdminRoute({ path: "admin/mausac", component: MauSacList }),
-  getAdminRoute({ path: "/admin/mausac/add", component: AddMauSac}),
+  getAdminRoute({ path: "/admin/mausac/add", component: AddMauSac }),
   getAdminRoute({
     path: "/admin/mausac/update/:mamausac",
     component: UpdateMauSac,
   }),
-  getAdminRoute({ path: "admin/size", component: SizeList}),
-  getAdminRoute({ path: "/admin/size/add", component: AddSize}),
+  getAdminRoute({ path: "admin/size", component: SizeList }),
+  getAdminRoute({ path: "/admin/size/add", component: AddSize }),
   getAdminRoute({
     path: "/admin/size/update/:masize",
     component: UpdateSize,
   }),
-  getAdminRoute({ path: "admin/dongsp", component: DongSPList}),
-  getAdminRoute({ path: "/admin/dongsp/add", component: AddDongSp}),
+  getAdminRoute({ path: "admin/dongsp", component: DongSPList }),
+  getAdminRoute({ path: "/admin/dongsp/add", component: AddDongSp }),
   getAdminRoute({
     path: "/admin/dongsp/update/:madongsp",
     component: UpdateDongSp,
   }),
-  getAdminRoute({ path: "admin/thuonghieu", component: ThuongHieuList}),
-  getAdminRoute({ path: "/admin/thuonghieu/add", component: AddThuongHiec}),
+  getAdminRoute({ path: "admin/thuonghieu", component: ThuongHieuList }),
+  getAdminRoute({ path: "/admin/thuonghieu/add", component: AddThuongHiec }),
   getAdminRoute({
     path: "/admin/thuonghieu/update/:mathuonghieu",
     component: UpdateThuongHieu,
@@ -99,6 +99,7 @@ const adminRoutes = [
     path: "/admin/orders/update/:mahoadon",
     component: UpdateOrder,
   }),
+  getAdminRoute({ path: "/admin/orders/add", component: AddOrder }),
   getAdminRoute({ path: "/admin/sanpham", component: ProductList }),
   getAdminRoute({ path: "/admin/sanpham/add", component: AddProduct }),
   getUserRoute({ path: "/login", component: UserLoginPage }),

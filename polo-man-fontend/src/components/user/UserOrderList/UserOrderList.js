@@ -151,10 +151,7 @@ const UserOrderList = () => {
                         <div className="row">
                           <div className="col-1">
                             <div className="order_product_image">
-                              <img
-                                src={`/img/sanpham/${product.hinhanh}`}
-                                alt=""
-                              />
+                              <img src={product.hinhanh} alt="" />
                             </div>
                           </div>
                           <div className="col-9">

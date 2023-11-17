@@ -173,7 +173,7 @@ const UserCart = () => {
                       </td>
                       <td>
                         <a href="#">
-                          <img src={`/img/sanpham/${p.hinhanh}`} alt="" />
+                          <img src={p.hinhanh} alt="" />
                         </a>
                       </td>
                       <td>

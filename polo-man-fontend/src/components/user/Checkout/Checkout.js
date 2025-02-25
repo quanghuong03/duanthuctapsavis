@@ -1,68 +1,84 @@
-import { Checkbox, Form, Input, Select } from "antd";
+import { Checkbox, Form, Input, Select, Radio, Button, Space } from "antd";
 import "./Checkout.css";
 import { useEffect, useState } from "react";
 import {
-  giohangService,
   userAuthService,
-  hoaDonKhachHang,
+  cartService,
+  orderService,
+  transactionService,
 } from "../../../service/user";
+
+import { productDetailService } from "../../../service/admin";
 import { toastService } from "../../../service/common";
-import { addressService } from "../../../service/admin";
-import { selectSearchDataUtil } from "../../../utils";
-import { SelectSearch } from "../../common/SelectSearch";
 import { useNavigate } from "react-router-dom";
 import { LoadingPage } from "../../common/LoadingPage";
+import AddAddress from "../Address/CreateAddress/CreateAddress";
 
 const Checkout = () => {
   const [checkOutProducts, setCheckOutProducts] = useState([]);
-
-  const [provinceOptions, setProvinceOptions] = useState([]);
-  const [districtOptions, setDistrictOptions] = useState([]);
-  const [wardOptions, setWardOptions] = useState([]);
-
   const [form] = Form.useForm();
-
-  const [province, setProvince] = useState();
-  const [district, setDistrict] = useState();
-  const [ward, setWard] = useState();
-
-  const [useUserProfile, setUseUserProfile] = useState(true);
-  const [shipPrice, setShipPrice] = useState(0);
-
   const [loading, setLoading] = useState(true);
-
   const navigate = useNavigate();
+  const userInfo = userAuthService.getAuthInfo();
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+  const [detail, setDetail] = useState([]);
+
+  const handleAddAddressClick = () => {
+    setIsAddAddressModalOpen(true);
+  };
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await giohangService.getProductsByTrangThai();
+        const res = await cartService.getCheckoutByStatus();
 
-        setCheckOutProducts(res.data.list);
-        console.log(res);
+        setCheckOutProducts(res.data.cartDetailResponses);
+        console.log(checkOutProducts);
 
         const userInfo = userAuthService.getAuthInfo();
-        form.setFieldValue("tennguoinhan", userInfo?.tenkhachhang || "");
-        form.setFieldValue("sodienthoai", userInfo?.sodienthoai || "");
-        // const addressRes = await userAddressService.getAddresses();
-        // const address = addressRes.data;
-        // // if (address) {
-        //   const { province, district, ward, street } = address;
-        //   selectProvince(province);
-        //   await loadDistrictOptions(province);
-        //   selectDistrict(district);
-        //   await loadWardOptions(district);
-        //   selectWard(ward);
-        //   setAddressNote(street || "");
-        //   await calculateShipPrice({ province, district });
-        // }
-
+        form.setFieldValue("username", userInfo?.name || "");
+        form.setFieldValue("phone", userInfo?.phone || "");
+        console.log(res.data.cartDetailResponses);
         setLoading(false);
       } catch (error) {
         toastService.error(error.apiMessage);
       }
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await productDetailService.getAllProductDetail();
+        setDetail(res.data);
+        setLoading(false);
+        console.log(res);
+      } catch (error) {
+        toastService.error(error.apiMessage);
+      }
+    })();
+  }, []);
+
+  const handleClick = (addressId) => {
+    setSelectedAddress(addressId);
+  };
+
+  const handleAddSuccess = (data) => {
+    // Handle the data after successfully adding the address
+    console.log(data);
+    // You can update the UI with the added address data here
+
+    setIsAddAddressModalOpen(false);
+  };
+
+  const getAvailableQuantity = (product) => {
+    const productDetail = detail.find(
+      (detailItem) => detailItem.productDetailId === product.productDetailId
+    );
+    return productDetail ? productDetail.quantity : 0;
+  };
 
   const addOrderSubmitHandle = async () => {
     const userInfo = userAuthService.getAuthInfo();
@@ -71,42 +87,97 @@ const Checkout = () => {
     } catch (error) {
       return;
     }
+
+    console.log(selectedAddress); // Add this line
+    if (!selectedAddress) {
+      toastService.error("Vui lòng chọn địa chỉ giao hàng.");
+      return;
+    }
+    const invalidProducts = checkOutProducts.filter((p) => {
+      return p.quantity > getAvailableQuantity(p);
+    });
+
+    if (invalidProducts.length > 0) {
+      const invalidProductNames = invalidProducts
+        .map((ip) => ip.nameProduct)
+        .join(", ");
+      const errorMessage = `Rất tiếc! Sản phẩm ${invalidProductNames} có số lượng vượt quá số lượng tồn kho. Vui lòng giảm số lượng và thử lại.`;
+
+      toastService.error(errorMessage);
+      return;
+    }
     try {
       const formValue = form.getFieldsValue();
-      const hoadonchitiet = checkOutProducts.map((cp) => {
+      const orderDetailRequest = checkOutProducts.map((cp) => {
+        const price =
+          cp.priceCore !== cp.pricePromotion ? cp.pricePromotion : cp.priceCore;
+
         return {
-          dongia: cp.giaban,
-          machitietsanpham: cp.mactsp,
-          soluong: cp.soluong,
+          price: price,
+          productDetailId: cp.productDetailId,
+          quantity: cp.quantity,
         };
       });
+
       const request = {
         ...formValue,
-        hoadonchitiet,
-        tonggia: getTotalPrice(),
+        address:
+          userInfo.address.find((address) => address.id === selectedAddress)
+            ?.fullAddress || "",
+        orderDetailRequest,
+        totalPrice: getSubTotalPrice(),
+        weight: getWeight(),
       };
-      console.log(userInfo?.makhachhang);
-      const addOrderRes = await hoaDonKhachHang.addOrder(
-        userInfo.makhachhang,
-        request
-      );
+
+      const addOrderRes = await orderService.addOrder(userInfo.id, request);
+      console.log(addOrderRes.data);
+      const { id, totalPrice } = addOrderRes.data;
+      console.log(addOrderRes.data);
+      if (paymentMethod === "VNP") {
+        const paymentUrlRes = await transactionService.TransactionUrl({
+          orderId: id,
+          totalPrice,
+        });
+        const { url } = paymentUrlRes.data;
+        console.log(url);
+        window.location.href = url;
+      } else {
+        console.log("ncc");
+        navigate("/");
+      }
       toastService.success("Checkout Successfully");
-      navigate("/orders");
     } catch (error) {
       toastService.error(error.apiMessage);
     }
   };
   const getSubTotalPrice = () => {
-    if (!checkOutProducts) {
+    if (checkOutProducts?.length === 0) {
       return 0;
     }
-    return checkOutProducts.reduce((acrr, pre) => {
-      return (acrr += pre.soluong * pre.giaban);
-    }, 0);
+    return checkOutProducts
+      .filter((p) => p)
+      .reduce((total, product) => {
+        const price =
+          product.priceCore === product.pricePromotion
+            ? product.priceCore
+            : product.pricePromotion;
+        return total + price * product.quantity;
+      }, 0);
   };
 
-  const getTotalPrice = () => {
-    return getSubTotalPrice() + shipPrice;
+  const getWeight = () => {
+    if (checkOutProducts?.length === 0) {
+      return 0;
+    }
+    return checkOutProducts
+      .filter((p) => p)
+      .reduce((total, product) => {
+        const price =
+          product.priceCore === product.pricePromotion
+            ? product.priceCore
+            : product.pricePromotion;
+        return total + product.weight * product.quantity;
+      }, 0);
   };
 
   if (loading) {
@@ -115,98 +186,113 @@ const Checkout = () => {
 
   return (
     <div className="checkout-page">
+      <AddAddress
+        open={isAddAddressModalOpen}
+        onCancel={() => setIsAddAddressModalOpen(false)}
+        onAddSuccess={handleAddSuccess}
+      />
       <div className="breadcrumb-section">
         <div className="container">
-          <h2>CHECK OUT</h2>
+          <h2
+            style={{
+              fontWeight: "bolder",
+              marginLeft: "300px",
+              marginTop: "30px",
+            }}
+          >
+            THANH TOÁN
+          </h2>
         </div>
       </div>
       <div className="section-b-space">
         <div className="container">
           <div className="row">
             <div className="col-6">
-              <div className="checkout-title">
-                <h3>Billing Details</h3>
-              </div>
               <Form layout="vertical" form={form}>
                 <div>
-                  <div className="d-flex custom-user-form">
+                  <div
+                    className="d-flex custom-user-form"
+                    style={{ marginLeft: "300px", marginTop: "30px" }}
+                  >
                     <Form.Item
-                      label="Full name"
-                      name={"tennguoinhan"}
+                      label="Tên người nhận"
+                      name="username"
                       rules={[
                         { required: true, message: "Full name is required" },
                       ]}
                     >
-                      <Input placeholder="Full name" size="large" />
+                      <Input
+                        placeholder="Full name"
+                        size="large"
+                        style={{ width: "200px" }}
+                      />
                     </Form.Item>
                     <Form.Item
-                      label="Phone number"
-                      name={"sodienthoai"}
-                      rules={[{ required: true, message: "phone is required" }]}
+                      label="Số điện thoại"
+                      name="phone"
+                      rules={[{ required: true, message: "Phone is required" }]}
                     >
                       <Input
                         placeholder="Phone number"
                         size="large"
-                        type="number"
+                        style={{ width: "200px" }}
                       />
                     </Form.Item>
                   </div>
+                  <Form.Item
+                    style={{ marginLeft: "300px" }}
+                    label="Địa chỉ"
+                    name="selectedAddress"
+                  >
+                    {userInfo.address.map((address, index) => (
+                      <div key={address.id} className="address-button-wrapper">
+                        <span>{address.fullAddress}</span>
+                        <button
+                          className={
+                            selectedAddress === address.id ? "selected" : ""
+                          }
+                          onClick={() => handleClick(address.id)}
+                        >
+                          {selectedAddress === address.id ? "Đã chọn" : "Chọn"}
+                        </button>
+                      </div>
+                    ))}
+                  </Form.Item>
                 </div>
-
-                <Form.Item
-                  label="Thành Phố"
-                  name={"thanhpho"}
-                  rules={[
-                    {
-                      required: true,
-                      message: "Thành phố không được để trống",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Thành phố" size="x-large" />
-                </Form.Item>
-                <Form.Item
-                  label="Quận Huyện"
-                  name={"quanhuyen"}
-                  rules={[
-                    {
-                      required: true,
-                      message: "Quận huyện không được để trống",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Quận huyện" size="x-large" />
-                </Form.Item>
-                <Form.Item
-                  label="Phường Xã"
-                  name={"phuongxa"}
-                  rules={[
-                    {
-                      required: true,
-                      message: "Phường xã không được để trống",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Phường Xã" size="x-large" />
-                </Form.Item>
-                <Form.Item
-                  label="Địa chị cụ thể"
-                  name={"diachi"}
-                  rules={[{ required: true, message: "detail is required" }]}
-                >
-                  <Input size="large" placeholder="Số nhà 5," />
-                </Form.Item>
-                <Form.Item label="Note" name={"note"}>
-                  <Input size="large" placeholder="Note" />
-                </Form.Item>
+                <div className="">
+                  <button
+                    className=""
+                    style={{ marginLeft: "300px" }}
+                    onClick={handleAddAddressClick}
+                  >
+                    Thêm địa chỉ
+                  </button>
+                </div>
               </Form>
+              <div style={{ marginLeft: "300px", marginTop: "30px" }}>
+                <label>Phương thức thanh toán</label>
+              </div>
+              <Radio.Group
+                style={{ marginLeft: "300px" }}
+                value={paymentMethod}
+              >
+                <Space
+                  direction="vertical"
+                  onChange={(e) => setPaymentMethod(e.target.defaultValue)}
+                >
+                  <Radio value={"COD"} defaultChecked={true}>
+                    Thanh toán khi nhận hàng
+                  </Radio>
+                  <Radio value={"VNP"}>Thanh toán bằng VNPAY</Radio>
+                </Space>
+              </Radio.Group>
             </div>
             <div className="col-6">
               <div className="checkout-details">
                 <div className="order-box">
                   <div className="title-box">
                     <div>
-                      Product <span>Total</span>
+                      Sản phẩm <span>Giá</span>
                     </div>
                   </div>
 
@@ -214,8 +300,16 @@ const Checkout = () => {
                     {checkOutProducts?.map((p, index) => {
                       return (
                         <li key={index}>
-                          {p.tensanpham} × {p.soluong}{" "}
-                          <span>{p.giaban * p.soluong}</span>
+                          {p.nameProduct} × {p.quantity}{" "}
+                          <span>
+                            {" "}
+                            {p.priceCore === p.pricePromotion
+                              ? (p.priceCore * p.quantity).toLocaleString()
+                              : (
+                                  p.pricePromotion * p.quantity
+                                ).toLocaleString()}{" "}
+                            VNĐ
+                          </span>
                         </li>
                       );
                     })}
@@ -223,18 +317,16 @@ const Checkout = () => {
 
                   <ul className="sub-total">
                     <li>
-                      Subtotal{" "}
-                      <span className="count">{getSubTotalPrice()}</span>
+                      Tổng đơn giá{" "}
+                      <span className="count">
+                        {getSubTotalPrice().toLocaleString()} VNĐ
+                      </span>
                     </li>
                     <li>
-                      Shipping
-                      <span className="count">{shipPrice}</span>
-                    </li>
-                  </ul>
-
-                  <ul className="total">
-                    <li>
-                      Total <span className="count">{getTotalPrice()}</span>
+                      Phí ship :
+                      <span className="count">
+                        Nhân viên sẽ liên hệ xác nhận và báo phí ship sau !!
+                      </span>
                     </li>
                   </ul>
                 </div>
@@ -243,9 +335,9 @@ const Checkout = () => {
                   <div className="text-end">
                     <button
                       onClick={addOrderSubmitHandle}
-                      className="btn-solid btn"
+                      className="btn btn-dark"
                     >
-                      Place Order
+                      Thanh toán
                     </button>
                   </div>
                 </div>
@@ -258,4 +350,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+export { Checkout };

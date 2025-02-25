@@ -1,0 +1,87 @@
+.btn-customer__add {
+  background-color: black;
+  margin: 0px 50px;
+}
+.btn-customer__add:hover {
+}
+.table__main {
+  margin-top: 1.1rem;
+  overflow: auto;
+  max-height: 500px
+}
+.table__main--customer {
+  margin-top: 1.1rem;
+  overflow: auto;
+  max-height: 800vh;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1.1rem;
+}
+table,
+tr {
+  border: 1px solid #f2f2f2;
+}
+
+tr:hover {
+  background-color: #e5e7eb;
+}
+
+thead {
+  background-color: #f4f4f4;
+}
+
+th,
+td {
+  padding: 10px 30px 10px 50px;
+  height: 8rem;
+}
+
+thead {
+  padding: 0;
+}
+.input-soluong {
+  width: 70px;
+  align-items: center;
+  margin-right: 50px;
+}
+.td-color {
+  margin-right: 70px;
+}
+.btn-xoa {
+  margin-right: 90px;
+}
+.text-giohang {
+  font-size: 30px;
+  font-weight: bold;
+  margin-left: 60px;
+  padding-top: 40px;
+}
+.btn-thanhtoan {
+  border: 3px solid black;
+  border-radius: 3px;
+  color: white;
+  background-color: black;
+  margin-right: 150px;
+}
+.btn {
+  width: 40px;
+}
+.ant-tabs-nav-wrap {
+  margin-left: 50px;
+}
+.ant-btn.css-dev-only-do-not-override-3mqfnx.ant-btn-primary {
+  background-color: black;
+}
+.ant-btn.css-dev-only-do-not-override-3mqfnx.ant-btn-default {
+  color: white;
+  background-color: black;
+}
+.ant-btn.css-dev-only-do-not-override-3mqfnx.ant-btn-default:hover {
+  color: white;
+  background-color: #1677ff;
+}
+.ant-checkbox-wrapper.css-dev-only-do-not-override-3mqfnx{
+ min-width: 10px;
+}

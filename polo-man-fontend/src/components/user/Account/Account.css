@@ -1,0 +1,27 @@
+.text-taikhoan{
+    font-weight: bold;
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+.account-container{
+    margin: 10px 50px;
+}
+.accountInfo{
+    font-weight: bold;
+    font-size: 20px;
+   
+}
+.btn-themdiachi{
+    width: 200px;
+    margin-left: 60px;
+    margin-top: 40px;
+}
+.text-top{
+    margin-top: 2%;
+    font-size: 30px;
+}
+.text-top2{
+    margin-top: 1%;
+    margin-bottom: 1%;
+   
+}

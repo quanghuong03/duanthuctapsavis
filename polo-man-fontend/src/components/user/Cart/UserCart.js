@@ -1,29 +1,46 @@
 import { Button, Checkbox, Input, Popconfirm } from "antd";
 import "./UserCart.css";
 import { useEffect, useState } from "react";
-import { giohangService } from "../../../service/user";
+import { cartService } from "../../../service/user";
+import { productDetailService } from "../../../service/admin";
 import { toastService } from "../../../service/common";
 import { Link, useNavigate } from "react-router-dom";
 import { DebounceInput, EmptyPage, LoadingPage } from "../../common";
 import { useNavigateLoginPage } from "../../../hook";
+import "../../Admin/admin-product.css";
 
 const UserCart = () => {
   const [products, setProducts] = useState([]);
+  const [detail, setDetail] = useState([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fetch initial data from the server
+    const fetchData = async () => {
+      try {
+        const res = await cartService.getProducts();
+        setProducts(
+          res.data.cartDetailResponses.map((p) => ({
+            ...p,
+            checked: p.cc === 1 ? true : false,
+          }))
+        );
+        setLoading(false);
+        console.log(res);
+      } catch (error) {
+        toastService.error(error.apiMessage);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     (async () => {
       try {
-        const res = await giohangService.getProducts();
-        setProducts(
-          res.data.list.map((p) => {
-            return {
-              ...p,
-              checked: p.tinhtrang === 0 ? true : false,
-            };
-          })
-        );
+        const res = await productDetailService.getAllProductDetail();
+        setDetail(res.data);
         setLoading(false);
         console.log(res);
       } catch (error) {
@@ -46,17 +63,21 @@ const UserCart = () => {
     }
     return products
       .filter((p) => p.checked)
-      .reduce((acrr, pre) => {
-        return (acrr += pre.giaban * pre.soluong);
+      .reduce((total, product) => {
+        const price =
+          product.priceCore === product.pricePromotion
+            ? product.priceCore
+            : product.pricePromotion;
+        return total + price * product.quantity;
       }, 0);
   };
 
   const handleDelete = async (product) => {
     try {
-      await giohangService.updatesoluong(product.magiohangchitiet, 0);
+      await cartService.deleteCart(product.cartDetailId);
       setProducts((pre) => {
         const newProducts = pre.filter(
-          (p) => p.magiohangchitiet !== product.magiohangchitiet
+          (p) => p.cartDetailId !== product.cartDetailId
         );
         return newProducts;
       });
@@ -71,28 +92,39 @@ const UserCart = () => {
       if (!newQuantity || newQuantity == 0) {
         return;
       }
-      await giohangService.updatesoluong(product.magiohangchitiet, newQuantity);
+
+      const params = {
+        quantity: +newQuantity, // Ensure the value is a number
+        idProductDetail: product.productDetailId, // Assuming this is the correct key
+      };
+      await cartService.changeQuantity(product.cartDetailId, params);
       setProducts((pre) => {
         return pre.map((p) => {
-          if (p.magiohangchitiet === product.magiohangchitiet) {
+          if (p.cartDetailId === product.cartDetailId) {
             return {
               ...product,
-              soluong: +newQuantity,
+              quantity: +newQuantity,
             };
           }
           return p;
         });
       });
     } catch (error) {
-      toastService.error(error.apiMessage);
+      if (error.response && error.response.status === 400) {
+        // Handle specific error message from the backend
+        toastService.error("Invalid quantity. Please enter a valid quantity.");
+      } else {
+        // Handle other generic errors
+        toastService.error("Số lượng tồn của sản phẩm không đủ");
+      }
     }
   };
 
   const checkProductChangeHandle = async (product, e) => {
     try {
       product.checked = e.target.checked;
-      await giohangService.updateStatus(
-        product.magiohangchitiet,
+      await cartService.changeStatus(
+        product.cartDetailId,
         product.checked ? 0 : 1
       );
       setProducts([...products]);
@@ -101,19 +133,38 @@ const UserCart = () => {
     }
   };
 
+  const getAvailableQuantity = (product) => {
+    const productDetail = detail.find(
+      (detailItem) => detailItem.productDetailId === product.productDetailId
+    );
+    return productDetail ? productDetail.quantity : 0;
+  };
+
   const checkOutClickHandle = async () => {
     if (!products?.some((p) => p.checked)) {
-      toastService.info("Please choose at least one product");
+      toastService.info("Vui lòng chọn sản phẩm để thanh toán");
       return;
     }
 
+    // Check product quantities before navigating to checkout
+    const invalidProducts = products.filter((p) => {
+      return p.checked && p.quantity > getAvailableQuantity(p);
+    });
+
+    if (invalidProducts.length > 0) {
+      const productNames = invalidProducts.map((p) => p.nameProduct).join(", ");
+      toastService.error(
+        `Số lượng sản phẩm ${productNames} vượt quá số lượng tồn. Vui lòng giảm số lượng.`
+      );
+      return;
+    }
+    // If all quantities are valid, navigate to checkout
     navigate("/checkout");
   };
-
   const checkAllProduct = async (e) => {
     if (e.target.checked) {
       for (let product of products) {
-        giohangService.updateStatus(product.magiohangchitiet, 0);
+        cartService.changeStatus(product.cartDetailId, 0);
       }
       const newProducts = products.map((product) => {
         product.checked = true;
@@ -125,7 +176,7 @@ const UserCart = () => {
 
     if (!e.target.checked) {
       for (let product of products) {
-        giohangService.updateStatus(product.magiohangchitiet, 1);
+        cartService.changeStatus(product.cartDetailId, 1);
       }
       const newProducts = products.map((product) => {
         product.checked = false;
@@ -139,26 +190,27 @@ const UserCart = () => {
   return (
     <div className="cart">
       <div className="breadcrumb-section">
-        <div className="container"></div>
+        <div className="container">
+          <h1 className="text-giohang">Thông tin giỏ hàng </h1>
+        </div>
       </div>
       <div className="carts">
         <div className="container">
           <div className="col-sm-12 table-responsive-xs">
-            <table className="table cart-table">
+            <table className="table__main">
               <thead>
-                <tr className="table-head">
-                  <th style={{ display: "flex" }}>
+                <tr>
+                  <th>
                     <Checkbox
+                      style={{ minWidth: "10px" }}
                       checked={products.every((p) => p.checked)}
                       onChange={(e) => checkAllProduct(e)}
                     ></Checkbox>
                   </th>
-                  <th>image</th>
                   <th>Tên sản phẩm</th>
-                  <th>Giá</th>
-                  <th>Số Lượng</th>
-                  <th>Tổng Gía</th>
-                  <th>action</th>
+                  <th style={{ paddingLeft: "90px" }}>Số lượng</th>
+                  <th style={{ paddingLeft: "100px" }}>Đơn giá</th>
+                  <th style={{ paddingLeft: "80px" }}>action</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,40 +223,78 @@ const UserCart = () => {
                           onChange={(e) => checkProductChangeHandle(p, e)}
                         ></Checkbox>
                       </td>
-                      <td>
-                        <a href="#">
-                          <img src={p.hinhanh} alt="" />
-                        </a>
+                      <td
+                        style={{
+                          display: "flex",
+
+                          alignItems: "center",
+                        }}
+                      >
+                        <div style={{ display: "flex" }}>
+                          <img src={p.image} alt="" width={"60px"} />
+                          <span>
+                            {p.nameProduct}
+                            <div>
+                              <div>
+                                {p.priceCore === p.pricePromotion ? (
+                                  <span style={{ color: "red" }}>
+                                    {p.priceCore.toLocaleString()} VNĐ
+                                  </span>
+                                ) : (
+                                  <span>
+                                    <span style={{ color: "red" }}>
+                                      {p.pricePromotion.toLocaleString()} VNĐ
+                                    </span>
+                                    <span
+                                      style={{
+                                        textDecoration: "line-through",
+                                        color: "black",
+                                      }}
+                                    >
+                                      {p.priceCore.toLocaleString()} VNĐ
+                                    </span>{" "}
+                                  </span>
+                                )}
+                              </div>
+                              <div>
+                                <strong>
+                                  Size: {p.nameSize} - Màu: {p.nameColor}
+                                </strong>
+                              </div>
+                            </div>
+                          </span>
+                        </div>
                       </td>
-                      <td>
-                        {p.tensanpham}
-                        <br />
-                        <strong>
-                          Màu : {p.tenmau} - Size : {p.sosize}
-                        </strong>
-                      </td>
-                      <td>{p.giaban} VND</td>
+
                       <td>
                         <DebounceInput
+                          className="input-soluong"
                           min={1}
                           type="number"
                           onSubmit={(e) => quantityChangeHandle(p, e)}
-                          defaultValue={p.soluong}
+                          defaultValue={p.quantity}
                         />
                       </td>
                       <td>
-                        <h4 className="td-color">{p.giaban * p.soluong} VND</h4>
+                        <h4 className="td-color">
+                          {p.priceCore === p.pricePromotion
+                            ? (p.priceCore * p.quantity).toLocaleString()
+                            : (
+                                p.pricePromotion * p.quantity
+                              ).toLocaleString()}{" "}
+                          VNĐ
+                        </h4>
                       </td>
                       <td>
                         <Popconfirm
                           title="Xóa đơn hàng"
-                          description="Bạn có chắc chắn muốn xóa đơn hàng này?"
+                          description="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
                           onConfirm={() => handleDelete(p)}
                           // onCancel={cancel}
                           okText="Có"
                           cancelText="Không"
                         >
-                          <Button>
+                          <Button className="btn-xoa">
                             <i className="fa fa-close"></i>
                           </Button>
                         </Popconfirm>
@@ -219,9 +309,11 @@ const UserCart = () => {
               <table className="table cart-table ">
                 <tfoot>
                   <tr>
-                    <td>Total price :</td>
+                    <td style={{ paddingRight: "180px" }}>Tổng giá:</td>
                     <td>
-                      <h3>{getTotalPrice()}</h3>
+                      <h3 style={{ paddingRight: "10px", display: "flex" }}>
+                        {getTotalPrice().toLocaleString()} VNĐ
+                      </h3>
                     </td>
                   </tr>
                 </tfoot>
@@ -233,9 +325,9 @@ const UserCart = () => {
             <div className="d-flex justify-content-end">
               <button
                 onClick={() => checkOutClickHandle()}
-                className="btn btn-primary"
+                className="btn-thanhtoan "
               >
-                Check out
+                Thanh toán
               </button>
             </div>
           </div>

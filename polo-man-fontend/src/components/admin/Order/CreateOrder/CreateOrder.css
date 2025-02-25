@@ -1,0 +1,40 @@
+.custom-modal .ant-modal-content {
+  width: 800px;
+}
+.sales-page-container {
+  display: flex;
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: white;
+}
+
+.sales-info-container {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.price-table-container {
+  flex: 0.75;
+  margin-left: 200px;
+}
+.tr-banggia {
+  font-size: 14px;
+  height: 1rem;
+}
+
+.img-a {
+  width: 50px;
+  height: 50px;
+}
+.btn-taohoadon {
+  margin-left: 1050px;
+}
+.text-tonggia {
+  margin-top: 20px;
+}
+.text-tonggia2 {
+  margin-top: 10px;
+}
+.btn-tonggia {
+  margin-top: 10px;
+}

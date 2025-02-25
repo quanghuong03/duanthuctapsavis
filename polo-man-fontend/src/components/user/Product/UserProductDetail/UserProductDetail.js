@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toastService } from "../../../../service/common";
-import { sanphamService } from "../../../../service/admin";
+import { productService } from "../../../../service/admin";
 import { LoadingPage } from "../../../common";
 import "./UserProductDetail.css";
-import { Carousel, Divider, Form, Input } from "antd";
-import { giohangService, userAuthService } from "../../../../service/user";
+import { Carousel, Divider, Form, Input, notification } from "antd";
+import { cartService, userAuthService } from "../../../../service/user";
 import { useNavigateLoginPage } from "../../../../hook";
 
 const UserProductDetail = () => {
-  const { masanpham } = useParams();
+  const { productId } = useParams();
   const [product, setProduct] = useState();
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState([]);
+  const [listImages, setListImages] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
   const [productDetailMap, setProductDetailMap] = useState([]);
-
+  const [price, setPrice] = useState(0);
   const [productDetailId, setProductDetailId] = useState("");
-
+  const [selectedImage, setSelectedImage] = useState(null);
   const [sizePicker, setSize] = useState("");
   const [colorPicker, setColor] = useState("");
+  const [pricecost, setPriceCost] = useState(0);
 
   const [quantityForm] = Form.useForm();
 
@@ -29,18 +31,18 @@ const UserProductDetail = () => {
   useEffect(() => {
     (async () => {
       try {
-        const productRes = await sanphamService.getProductById(masanpham);
+        const productRes = await productService.getProductDetailById(productId);
         const product = productRes.data;
         setProduct(productRes.data);
 
-        const productDetails = product.list || [];
+        const productDetails = product.productDetails || [];
 
         const sizeMap = productDetails.reduce((acrr, pre, index) => {
           return {
             ...acrr,
-            [pre.masize]: {
-              masize: pre.masize,
-              sosize: pre.sosize,
+            [pre.sizeId]: {
+              id: pre.sizeId,
+              name: pre.nameSize,
               index,
             },
           };
@@ -51,9 +53,9 @@ const UserProductDetail = () => {
         const colors = productDetails.reduce((acrr, pre, index) => {
           return {
             ...acrr,
-            [pre.mamausac]: {
-              mamausac: pre.mamausac,
-              tenmau: pre.tenmau,
+            [pre.colorId]: {
+              id: pre.colorId,
+              name: pre.nameColor,
               index,
             },
           };
@@ -61,7 +63,7 @@ const UserProductDetail = () => {
         setColors(Object.values(colors));
 
         const productDetailMap = productDetails.reduce((acrr, pre) => {
-          const colorSizeKey = `${pre.masize}_${pre.mamausac}`;
+          const colorSizeKey = `${pre.sizeId}_${pre.colorId}`;
           return {
             ...acrr,
             [colorSizeKey]: pre,
@@ -69,6 +71,11 @@ const UserProductDetail = () => {
         }, {});
 
         setProductDetailMap(productDetailMap);
+
+        const images = product.productDetails.map((pd) => {
+          return pd?.images?.[0]?.name;
+        });
+        setImages(images);
         setLoading(false);
       } catch (error) {
         toastService.error(error.apiMessage);
@@ -76,25 +83,60 @@ const UserProductDetail = () => {
     })();
   }, []);
 
-  const sizeChangeHandle = (index) => {
-    setSize(index);
-  };
-
   const getCurrentProductDetailKey = () => {
-    return `${sizePicker?.masize || ""}_${colorPicker?.mamausac || ""}`;
+    return `${sizePicker?.id || ""}_${colorPicker?.id || ""}`;
   };
-
+  const handleImageSelect = (image) => {
+    setSelectedImage(image);
+  };
   const getAvailableQuanity = () => {
     const colorSizeKey = getCurrentProductDetailKey();
     const productDetail = productDetailMap[colorSizeKey];
-    return productDetail?.soluongton || 0;
+    return productDetail?.quantity || 0;
+  };
+
+  // Find the first product detail initially
+  useEffect(() => {
+    // ...
+    if (sizes.length > 0) {
+      setSize(sizes[0]);
+    }
+    if (colors.length > 0) {
+      setColor(colors[0]);
+    }
+  }, [sizes, colors]);
+
+  useEffect(() => {
+    if (sizePicker && colorPicker) {
+      const currentProductDetailKey = `${sizePicker.id}_${colorPicker.id}`;
+      const productDetail = productDetailMap[currentProductDetailKey];
+      setProductDetailId(productDetail?.productDetailId || "");
+      setPrice(productDetail?.price || 0);
+      setPriceCost(productDetail?.pricecost || price);
+      const images = productDetail?.images || [];
+      setListImages(images);
+      console.log(images);
+    }
+  }, [sizePicker, colorPicker, productDetailMap]);
+
+  const isSizeAvailable = (colorId, sizeId) => {
+    const productDetailKey = `${sizeId}_${colorId}`;
+    return productDetailMap.hasOwnProperty(productDetailKey);
+  };
+  const isColorAvailable = (colorId, sizeId) => {
+    const productDetailKey = `${sizeId}_${colorId}`;
+    return productDetailMap.hasOwnProperty(productDetailKey);
+  };
+
+  const getSelectedProductDetail = () => {
+    return productDetailMap[getCurrentProductDetailKey()];
   };
 
   const addProductToCardHandle = async () => {
     if (!userAuthService.isLogin()) {
       toastService.info(
         <a>
-          You need to login to perform this action,
+          Bạn cần đăng nhập
           <div>
             <a style={{ fontWeight: 700, color: "#007bff" }}>Login now</a>
           </div>
@@ -105,106 +147,95 @@ const UserProductDetail = () => {
       );
       return;
     }
-
-    const quantity = quantityForm.getFieldsValue()?.quantity;
+    const quantity = quantityForm.getFieldsValue().quantity;
     const productDetail = getSelectedProductDetail();
-
     if (!productDetail) {
-      toastService.info("Vui lòng chọn sản phẩm");
+      toastService.info("Please choose product model");
       return;
     }
-
     if (!quantity) {
-      toastService.info("Vui lòng nhập số lượng");
+      toastService.info("Please input quantity");
       return;
     }
-
-    if (quantity > productDetail.soluongton) {
-      toastService.info("Số lượng sản phẩm không đủ");
+    if (quantity > productDetail.quantity) {
+      toastService.info("Vui lòng nhập số lượng nhỏ hơn số lượng tồn");
       return;
     }
-
     const req = {
-      mactsp: productDetail.mactsp,
-      soluong: quantity,
+      productDetailId: productDetailId,
+      quantity: quantity,
     };
 
     try {
       const authInfo = await userAuthService.getAuthInfo();
-      const res = await giohangService.addProduct(authInfo.makhachhang, req);
-      toastService.success("Product added to cart successfully");
+      const res = await cartService.addProduct(authInfo.id, req);
+      toastService.success("Thêm vào giỏ hàng thành công");
       console.log(res);
     } catch (error) {
-      toastService.error(error.apiMessage);
+      notification.error({
+        message: "Đã vượt quá số lượng tồn",
+        description: error.message, // Hoặc sử dụng mô tả lỗi khác tùy theo nhu cầu
+      });
     }
-  };
-
-  const getSelectedProductDetail = () => {
-    return productDetailMap[getCurrentProductDetailKey()] || null;
   };
 
   const canAddToCard = () => {
     const quantity = quantityForm.getFieldsValue()?.quantity;
-    return quantity && quantity <= getAvailableQuanity();
+    return quantity && quantity < getAvailableQuanity();
   };
+
   if (loading) {
     return <LoadingPage />;
   }
+
   return (
     <div>
       <div className="breadcrumb-section">
-        <div className="container"></div>
+        <div className="container">
+          <div></div>
+        </div>
       </div>
       <div className={"container product_detail"}>
         <div className={"row"}>
-          <div className={"col-6 "}>
+          <div className={"col-5"}>
             <div className={"main_image"}>
               <Carousel autoplay>
-                <div className={"main_image"}>
-                  <img
-                    className={"product-image"}
-                    src={product.hinhanh}
-                    alt="Image 1"
-                  />
-                </div>
-                <div>
-                  <img
-                    className={"product-image"}
-                    src={product.hinhanh}
-                    alt="Image 2"
-                  />
-                </div>
-                <div>
-                  <img
-                    className={"product-image"}
-                    src={product.hinhanh}
-                    alt="Image 3"
-                  />
-                </div>
-                {/* Add more images here */}
+                {listImages.map((image, index) => (
+                  <div key={index} className="main_image">
+                    <img
+                      className="product-image"
+                      src={image.name}
+                      alt={`Image ${index + 1}`}
+                    />
+                  </div>
+                ))}
               </Carousel>
             </div>
           </div>
           <div className={"col-6"}>
             <div className={"product-right "}>
-              <div className={"product-count"}>
-                <ul>
-                  <li>
-                    /<span className="p-counter">37</span>
-                    <span className="lang">Orders in last 24 hours</span>
-                  </li>
-                  <li>
-                    <img
-                      src="http://themes.pixelstrap.com/multikart/assets/images/person.gif"
-                      className="img-fluid user_img"
-                      alt="image"
-                    />
-                    <span className="p-counter">44</span>
-                    <span className="lang">active view this</span>
-                  </li>
-                </ul>
+              <div>
+                <h1
+                  style={{
+                    fontSize: "20px",
+                    display: "inline-block",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  {product.name}
+                </h1>
+                {product.promotionPercent !== 0 && (
+                  <span
+                    className="promotionPercent"
+                    style={{ display: "inline-block", verticalAlign: "middle" }}
+                  >
+                    {product.promotionPercent}%
+                  </span>
+                )}
               </div>
-              <h2>{product.tensanpham}</h2>
+              <br></br>
+              <h4>Mã sản phẩm : APL{productDetailId}</h4>
+              <br></br>
               <div className="rating-section">
                 <div className="rating">
                   <i className="fa fa-star"></i> <i className="fa fa-star"></i>{" "}
@@ -214,112 +245,155 @@ const UserProductDetail = () => {
                 <h6>120 ratings</h6>
               </div>
 
-              <div className="label-section">
-                <span className="badge badge-grey-color">#1 Best seller</span>
-                <span className="label-text">in fashion</span>
-              </div>
-
               <h3 className="price-detail">
-                {product.giaban}
-                <del>{product.giaban}</del>
-                <span>10%</span>
+                <div className="prices">
+                  {product.promotionPercent ? (
+                    <>
+                      <span className="originalPrice">
+                        {pricecost.toLocaleString()} VNĐ
+                      </span>
+                      {pricecost !== 0 && (
+                        <span className="discountedPrice">
+                          {price.toLocaleString()} VNĐ
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="originalPrice">
+                      {price.toLocaleString()} VNĐ
+                    </span>
+                  )}
+                </div>
               </h3>
 
-              <ul className="color-variant">
-                {colors.map((color, index) => {
-                  return (
-                    <li
-                      onClick={() => setColor(color)}
-                      className={
-                        color.index === colorPicker?.index ? "active" : ""
-                      }
-                      style={{
-                        border: "1px solid lightgray",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderRadius: "0.25rem",
-                        width: "50px",
-                      }}
-                      key={index}
-                    >
-                      {color.tenmau}
-                    </li>
-                  );
-                })}
-              </ul>
+              <h6 className="product-title">
+                Số lượng tồn : {getAvailableQuanity()}
+              </h6>
+
+              <div className="qty-container">
+                <h6 className="product-title">Số lượng :</h6>
+                <div className="qty-box mt-3">
+                  <Form form={quantityForm}>
+                    <Form.Item name={"quantity"} initialValue={1}>
+                      <Input
+                        min={1}
+                        className="qty-input"
+                        style={{ width: "100px" }}
+                        type={"number"}
+                        placeholder={"Số lượng"}
+                      />
+                    </Form.Item>
+                  </Form>
+                </div>
+              </div>
+
+              <hr style={{ width: "400px" }}></hr>
+              <br></br>
 
               <div
                 id="selectSize"
                 className="addeffect-section product-description border-product"
               >
-                <h6 className="product-title size-text">
-                  select size{" "}
-                  <span>
-                    <a
-                      href=""
-                      data-bs-toggle="modal"
-                      data-bs-target="#sizemodal"
-                    >
-                      size chart
-                    </a>
-                  </span>
-                </h6>
-                <h6 className="error-message">please select size</h6>
-                <div className="size-box">
-                  <ul>
-                    {sizes.map((size, index) => {
-                      return (
-                        <li
-                          key={index}
-                          className={
-                            size.index === sizePicker?.index ? "active" : ""
-                          }
-                          onClick={() => sizeChangeHandle(size)}
-                        >
-                          {size.sosize}
-                        </li>
-                      );
-                    })}
+                <p>Màu sắc :</p>
+                <div className="color-box">
+                  <ul className="color-variant">
+                    {colors.map((color, index) => (
+                      <li
+                        onClick={() => setColor(color)}
+                        className={`color-item ${
+                          color.id === colorPicker?.id ? "active" : ""
+                        }`}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "5px", // You can adjust the border radius as needed
+                          textDecoration:
+                            !isSizeAvailable(color.id, sizePicker?.id) ||
+                            !isColorAvailable(color.id, sizePicker?.id)
+                              ? "line-through"
+                              : "none",
+                          pointerEvents:
+                            !isSizeAvailable(color.id, sizePicker?.id) ||
+                            !isColorAvailable(color.id, sizePicker?.id)
+                              ? "none"
+                              : "auto",
+                          border: "2px solid #c3bebd",
+                        }}
+                        key={index}
+                      >
+                        {color.name}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
-
-              <h6 className="product-title">Available</h6>
-
-              <div className="qty-box mt-3">{getAvailableQuanity()}</div>
-
-              <h6 className="product-title">Quantity</h6>
-              <div className="qty-box mt-3">
-                <Form form={quantityForm}>
-                  <Form.Item name={"quantity"} initialValue={1}>
-                    <Input
-                      min={1}
-                      style={{ width: "100px" }}
-                      type={"number"}
-                      placeholder={"Số lượng"}
-                    />
-                  </Form.Item>
-                </Form>
+              <div
+                id="selectSize"
+                className="addeffect-section product-description border-product"
+              >
+                <p>Size : </p>
+                <div className="size-box">
+                  <ul className="size-variant">
+                    {sizes.map((size, index) => (
+                      <li
+                        onClick={() => setSize(size)}
+                        className={`size-item ${
+                          size.id === sizePicker?.id ? "active" : ""
+                        }`}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "5px", // You can adjust the border radius as needed
+                          textDecoration:
+                            !isSizeAvailable(colorPicker?.id, size.id) ||
+                            !isColorAvailable(colorPicker?.id, size.id)
+                              ? "line-through"
+                              : "none",
+                          cursor:
+                            !isSizeAvailable(colorPicker?.id, size.id) ||
+                            !isColorAvailable(colorPicker?.id, size.id)
+                              ? "not-allowed"
+                              : "pointer",
+                          pointerEvents:
+                            !isSizeAvailable(colorPicker?.id, size.id) ||
+                            !isColorAvailable(colorPicker?.id, size.id)
+                              ? "none"
+                              : "auto",
+                          border: "2px solid #c3bebd",
+                        }}
+                        key={index}
+                      >
+                        {size.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               <div className="product-buttons">
                 <button
                   id="cartEffect"
                   onClick={addProductToCardHandle}
-                  abled={!canAddToCard()}
-                  className="btn btn-primary"
+                  disabled={!canAddToCard()}
+                  className="btn-solid"
                 >
-                  <i className="fa fa-shopping-cart me-1"></i> Add to cart
+                  <i className="fa fa-shopping-cart me-1"></i> Thêm vào giỏ hàng
                 </button>
               </div>
             </div>
           </div>
-
+          <hr></hr>
+          <br></br>
           <div className={"col-12"}>
-            <h2>Product detail</h2>
+            <br></br>
+            <h2>Thông tin sản phẩm</h2>
             <Divider />
-            <div dangerouslySetInnerHTML={{ __html: product.mota }}></div>
+            <div>
+              {" "}
+              Mô tả : {product.description},Thương hiệu : {product.nameBrand},
+              Chất Liệu : {product.nameMaterial}, Loại áo :{" "}
+              {product.nameCategory}
+            </div>
           </div>
         </div>
       </div>

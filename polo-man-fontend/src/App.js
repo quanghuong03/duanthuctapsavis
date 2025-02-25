@@ -1,17 +1,10 @@
 import logo from "./logo.svg";
-import "./App.css";
-
-import { UserLayout, AdminLayout } from "./layout";
-import { DatePicker } from "antd";
-import { AdminLogin } from "./layout/admin";
-import { Route, Router, Routes } from "react-router-dom";
-
+import "./App.scss";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { adminRoutes, privateRoutes } from "./routes";
-import { useEffect } from "react";
-import { Cloudinary } from "@cloudinary/url-gen";
 import axios from "axios";
 
-const DefaultLauyout = ({ children }) => {
+const DefaultLayout = ({ children }) => {
   return <>{children}</>;
 };
 
@@ -21,27 +14,29 @@ const NoGuard = ({ children }) => {
 
 function App() {
   return (
-    <Routes>
-      {adminRoutes.map((route, index) => {
-        const Page = route.component;
-        const Layout = route.layout || DefaultLauyout;
-        let Guard = route.guard || NoGuard;
+    <Router>
+      <Routes>
+        {adminRoutes.map((route, index) => {
+          const Page = route.component;
+          const Layout = route.layout || DefaultLayout;
+          let Guard = route.guard || NoGuard;
 
-        return (
-          <Route
-            key={index}
-            path={route.path}
-            element={
-              <Guard>
-                <Layout>
-                  <Page />
-                </Layout>
-              </Guard>
-            }
-          ></Route>
-        );
-      })}
-    </Routes>
+          return (
+            <Route
+              key={index}
+              path={route.path}
+              element={
+                <Guard>
+                  <Layout>
+                    <Page />
+                  </Layout>
+                </Guard>
+              }
+            />
+          );
+        })}
+      </Routes>
+    </Router>
   );
 }
 

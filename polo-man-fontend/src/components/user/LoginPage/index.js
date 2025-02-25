@@ -1,3 +1,5 @@
 import { UserLoginPage } from "./UserLoginPage";
 
-export { UserLoginPage };
+export {
+    UserLoginPage
+}

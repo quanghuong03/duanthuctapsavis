@@ -4,16 +4,35 @@ import { toastService } from "../../../../service/common";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+import XRegExp from "xregexp";
 const UpdateSize = () => {
-  const { masize } = useParams();
-  console.log(masize);
+  const { id } = useParams();
+  console.log(id);
   const navigate = useNavigate();
   const [size, setSize] = useState({});
   const [form] = Form.useForm();
+  const validateInput = (rule, value, callback) => {
+    const regex = XRegExp("^[\\p{L}0-9\\s^%/().,]+$");
+    const maxLength = 200;
 
+    if (value && value.length > maxLength) {
+      callback(`Không vượt quá ${maxLength} kí tự`);
+    } else if (value && !regex.test(value)) {
+      callback("Không chứa ký tự đặc biệt");
+    } else {
+      callback();
+    }
+  };
+  const validateNumber = (rule, value, callback) => {
+    if (isNaN(value)) {
+      callback("Vui lòng nhập số");
+    } else {
+      callback();
+    }
+  };
   useEffect(() => {
     (async () => {
-      const body = await sizeService.getOne(masize);
+      const body = await sizeService.getOne(id);
       setSize(body.data);
       console.log(body.data);
       form.setFieldsValue({
@@ -25,12 +44,16 @@ const UpdateSize = () => {
   const updateHandle = async (form) => {
     try {
       const formData = {
-        masize: masize,
-          sosize: form.sosize,
-          chieucao: form.chieucao,
-        cannang: form.cannang
+        id: id,
+        name: form.name,
+        description: form.description,
+        shirtlength: form.shirtlength,
+        shirtwidth: form.shirtwidth,
+        sleevelenght:form.sleevelenght,
+        shoulderlength: form.shoulderlength,
+        
       };
-     sizeService.saveOrUpdateSize(formData);
+      sizeService.createSize(formData);
       console.log(formData);
       toastService.success("Cập nhật size thành công");
       navigate("/admin/size");
@@ -49,30 +72,52 @@ const UpdateSize = () => {
     >
       <Form.Item
         label="Name"
-        name="sosize"
-        rules={[{ required: true, message: "Số size không được trống" }]}
-      >
-        <Input />
-          </Form.Item>
-          <Form.Item
-        label="Name"
-        name="chieucao"
-        rules={[{ required: true, message: "Chiều cao không được trống" }]}
-      >
-        <Input />
-          </Form.Item>
-          <Form.Item
-        label="Name"
-        name="cannang"
-        rules={[{ required: true, message: "Cân nặng không được trống" }]}
+        name="name"
+        rules={[  { required: true, message: "Tên không được trống" },
+        { validator: validateInput },]}
       >
         <Input />
       </Form.Item>
-
+      <Form.Item
+        label="Mô tả"
+        name="description"
+        rules={[   { required: true, message: "Mô tả không được trống" },
+        { validator: validateInput },]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="shirtlength"
+        name="shirtlength"
+        rules={[{ required: true, message: "shirtlength không được trống" },  { validator: validateNumber }]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="shirtwidth"
+        name="shirtwidth"
+        rules={[{ required: true, message: "shirtwidth không được trống" },   { validator: validateNumber }]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="sleevelenght"
+        name="sleevelenght"
+        rules={[{ required: true, message: "sleevelenght không được trống" },   { validator: validateNumber }]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="shoulderlength"
+        name="shoulderlength"
+        rules={[{ required: true, message: "shoulderlength không được trống" },  { validator: validateNumber }]}
+      >
+        <Input />
+      </Form.Item>
       <Form.Item wrapperCol={{ offset: 4 }}>
-        <Button type="primary" htmlType="submit">
+        <button type="primary" htmlType="submit">
           Cập nhật size
-        </Button>
+        </button>
       </Form.Item>
     </Form>
   );

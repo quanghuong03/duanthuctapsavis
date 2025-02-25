@@ -1,6 +1,7 @@
 import axios from "axios";
 import { AppApiError } from "../../common/error/AppApiError";
 import { SERVER_URL } from "../../../constant";
+import socket from "../../../WebSocketService";
 
 const instance = axios.create({
   baseURL: SERVER_URL,
@@ -15,18 +16,21 @@ const handleError = (e) => {
   throw new AppApiError(e);
 };
 
-const post = async (url, body = {}) => {
+const post = async (url, body = {}, { params } = {}) => {
   try {
-    const res = await instance.post(url, body);
+    const res = await instance.post(url, body, {
+      body,
+      params,
+    });
     return res.data;
   } catch (error) {
     handleError(error);
   }
 };
 
-const get = async (url) => {
+const get = async (url, config) => {
   try {
-    const res = await instance.get(url);
+    const res = await instance.get(url, config);
     return res.data;
   } catch (error) {
     handleError(error);

@@ -1,19 +1,32 @@
 import adminAuthService from "./auth/adminAuth.service";
-import * as chatLieuSerivce from "./Chatlieu/chatlieu.service";
-import * as sanphamService from "./SanPham/sanpham.service";
-import * as hoaDonService from "./hoadon/hoadon.service";
-import * as DongspService from "./Dongsp/dongsp.service";
-import * as thuonghieuService from "./ThuongHieu/thuonghieu.service";
-import * as sizeService from "./Size/size.service";
-import * as mauSacService from "./MauSac/mausac.service";
-
+import * as colorService from "./color/color.service";
+import * as customerService from "./customer/customer.service";
+import * as brandService from "./brand/banrd.service";
+import * as productService from "./product/product.service";
+import * as materialService from "./material/material.service";
+import * as categoryService from "./category/category.service";
+import * as sizeService from "./size/size";
+import * as discountService from "./discount/discount.service";
+import * as imageService from "./image/image.service";
+import * as orderService from "./order/order.service";
+import * as productDetailService from "./productDetail/productDetail";
+import * as adminService from "./admin/admin.service";
+import * as orderDetailService from "./orderDetail/orderDetail";
+import * as roleService from "./role/role.service";
 export {
   adminAuthService,
-  chatLieuSerivce,
-  sanphamService,
-  hoaDonService,
-  DongspService,
-  thuonghieuService,
+  colorService,
+  customerService,
+  brandService,
+  materialService,
+  categoryService,
+  productService,
   sizeService,
-  mauSacService,
+  discountService,
+  imageService,
+  orderService,
+  productDetailService,
+  adminService,
+  orderDetailService,
+  roleService,
 };

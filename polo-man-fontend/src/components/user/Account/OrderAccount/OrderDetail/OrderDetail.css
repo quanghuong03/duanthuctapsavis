@@ -1,0 +1,39 @@
+
+.dongia{
+  color: red;
+   
+}
+.divdongia{
+ display: flex;
+ margin-top: 20px;
+}
+.container-chitietthanhtoan{
+  margin-left: 420px;
+}
+.tennguoinhan{
+  margin-top: 20px;
+}
+.tr-oder:hover{
+  background-color: initial;
+  color: initial;
+}
+button{
+  background-color: black;
+  color: white;
+  height: 30px;
+  width: 150px;
+  border-radius: 5px;
+}
+button:hover{
+  background-color: #0055ff;
+}
+.btn-guidonhang{
+  background-color: black;
+  color: white;
+  height: 30px;
+  width: 100px;
+  border-radius: 3px;
+} 
+.btn-guidonhang:hover{
+  background-color: #0055ff;
+}

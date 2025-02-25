@@ -43,8 +43,8 @@ const AdminLogin = () => {
 
             <Form.Item
               label="Mật khẩu"
-              name="matkhau"
-              rules={[{ required: true, message: "password is required" }]}
+              name="password"
+              rules={[{ required: true, message: "Password is required" }]}
             >
               <Input type="password" />
             </Form.Item>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AppApiError } from "../../common/error/AppApiError";
+import { adminAuthService } from "../index";
 import { SERVER_URL } from "../../../constant";
 
 const instance = axios.create({
@@ -24,15 +25,14 @@ const post = async (url, body = {}) => {
   }
 };
 
-const get = async (url) => {
+const get = async (url, config) => {
   try {
-    const res = await instance.get(url);
+    const res = await instance.get(url, config);
     return res.data;
   } catch (error) {
     handleError(error);
   }
 };
-
 const put = async (url, config) => {
   try {
     const res = await instance.put(url, config);

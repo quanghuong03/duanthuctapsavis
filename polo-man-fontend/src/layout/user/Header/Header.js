@@ -6,7 +6,7 @@ import { useNavigateLoginPage, useNavigateOrRedirectUrl } from "../../../hook";
 import { useUserStore } from "../../store";
 import { patchProductForm } from "../../store/action";
 import { Form, Input } from "antd";
-import { color } from "@cloudinary/url-gen/qualifiers/background";
+
 // http://themes.pixelstrap.com/multikart/front-end/furniture-2.html#
 const Header = () => {
   const [useInfo, setUserInfo] = useState();
@@ -29,70 +29,24 @@ const Header = () => {
   };
 
   const searchProductHandle = (form) => {
-    if (!form.tensanpham) {
+    if (!form.name) {
       return;
     }
     dispatch(
       patchProductForm({
-        tensanpham: form.tensanpham,
+        name: form.name,
       })
     );
-    navigate("/search", {
+    navigate("/products/search/", {
       state: {
-        tensanpham: form.tensanpham,
+        name: form.name,
       },
-      search: "?tensanpham=" + form.tensanpham,
+      search: "?name=" + form.name,
     });
   };
 
   return (
     <header>
-      <div className="top-header top-header-dark2">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-6">
-              <div className="header-contact">
-                <ul>
-                  <li>Welcome to Our store Men Wardrobe</li>
-                  <li>
-                    <i className="fa fa-phone" aria-hidden="true"></i>Call Us:
-                    0968.86.83.86
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-6 text-end top-header-right">
-              <ul className="header-dropdown">
-                <li className="onhover-dropdown mobile-account">
-                  {userAuthService.isLogin() && (
-                    <div className="userInfo">
-                      <i className="fa fa-user" aria-hidden="true"></i>
-                      {useInfo?.tenkhachhang}
-                      <ul className="onhover-show-div">
-                        <li>
-                          <Link to={"/account"}>My Account</Link>
-                        </li>
-                        <li>
-                          <Link to={"/orders"}>My Orders</Link>
-                        </li>
-                        <hr></hr>
-                        <li onClick={logoutHandle}>
-                          <a>Logout</a>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                  {!userAuthService.isLogin() && (
-                    <div>
-                      <a onClick={() => navigateLogin()}>Login</a>
-                    </div>
-                  )}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="main_header">
         <div className="container">
           <div className="row">
@@ -102,28 +56,28 @@ const Header = () => {
                   <div className="brand-logo">
                     <Link to={"/"}>
                       <img
-                        src="https://incucdep.com/wp-content/uploads/2014/12/logo-thoi-trang.jpg"
+                        style={{ marginTop: "-22px" }}
+                        src="https://firebasestorage.googleapis.com/v0/b/sd-95-polostore.appspot.com/o/PoloStore.png?alt=media&token=030f29fd-d1b6-4146-a922-be92e0ec5573"
                         className="img-fluid blur-up lazyloaded"
                         alt=""
-                        width={"120px"}
+                        width={"180px"}
                       />
                     </Link>
                   </div>
                 </div>
-
+                <p className="text-timkiem">TÌM KIẾM</p>
                 <Form
                   className="form_search border-radius-0"
                   onFinish={searchProductHandle}
                 >
-                  <Form.Item name={"tensanpham"}>
+                  <Form.Item name={"name"} className="search-input">
                     <Input
                       id="query search-autocomplete"
                       type="search"
                       placeholder="Search products"
-                      className="nav-search nav-search-field"
+                      className="nav-search-field"
                     />
                   </Form.Item>
-
                   <button
                     type="submit"
                     name="nav-submit-button"
@@ -132,7 +86,6 @@ const Header = () => {
                     <i className="fa fa-search"></i>
                   </button>
                 </Form>
-
                 <div className="menu-right pull-right">
                   <div>
                     <div className="icon-nav">
@@ -149,25 +102,70 @@ const Header = () => {
                     </div>
                   </div>
                 </div>
+                <div className="">
+                  <ul className="header-dropdown">
+                    <li className="onhover-dropdown mobile-account">
+                      {userAuthService.isLogin() && (
+                        <div className="userInfo">
+                          <div className="flex items-center space-x-3">
+                            <div>
+                              <div className="font-bold">{useInfo?.name}</div>
+                            </div>
+                            <div className="avatar">
+                              <div className="mask mask-squircle w-12 h-12">
+                                <img
+                                  src={useInfo?.avatar}
+                                  alt="Avatar"
+                                  className="rounded-full"
+                                  style={{
+                                    width: "50px",
+                                    height: "50px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <ul className="onhover-show-div">
+                            <li>
+                              <Link to={"/account"}>My Account</Link>
+                            </li>
+                            <li>
+                              <Link to={"/orders"}>My Orders</Link>
+                            </li>
+                            <hr></hr>
+                            <li onClick={logoutHandle}>
+                              <a>Logout</a>
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                      {!userAuthService.isLogin() && (
+                        <div>
+                          <a onClick={() => navigateLogin()}>Login</a>
+                        </div>
+                      )}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       <div className="header_bottom bottom-part bottom-light">
         <div className="container">
           <div className="main-nav-center">
             <nav id="main-nav">
               <ul id="main-menu">
                 <Link to={"/"}>
-                  <li className="text-dark">HOME</li>
+                  <li className="text-dark">Trang chủ</li>
                 </Link>
-                <li>FEATURE</li>
-                <li>SHOP</li>
-                <li>PRODUCT</li>
-                <li>PAGE</li>
-                <li>BLOG</li>
+                <li>Giảm giá</li>
+                <li>Bộ sưu tập</li>
+                <li>Sản phẩm</li>
+                <li>Chính sách</li>
+                <li>Giới thiệu</li>
               </ul>
             </nav>
           </div>
